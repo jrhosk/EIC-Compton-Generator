@@ -1,4 +1,5 @@
 #include "TF2.h"
+#include "TF1.h"
 #include <vector>
 #include <string>
 #include <fstream>
@@ -18,8 +19,8 @@ private:
     double photon_theta;     // Photon polar angle   (outgoing)
     double photon_phi;       // Photon azimuthal angle   (outgoing)
 
-    double electron_energy;  // Scattered electron energy (eV)
-    double photon_energy;    // Scattered photon energy (eV)
+    double electron_momentum;// Scattered electron energy ()
+    double photon_momentum;  // Scattered photon energy ()
 
     double kmax;             // Maximum scattered photon energy
 
@@ -37,7 +38,8 @@ private:
 
   };
 
-  TF2 *cs;
+  TF1 *cs;
+  TF1 *asym;
 
   int event_counter;
 
@@ -76,8 +78,8 @@ public:
   double GetLaserEnergy();
   double GetPolarization();
 
-  double GetElectronEnergy();
-  double GetPhotonEnergy();
+  double GetElectronMomentum();
+  double GetPhotonMomentum();
 
   double GetElectronTheta();
   double GetPhotonTheta();
@@ -93,15 +95,19 @@ public:
   void SetEventVertex(double, double, double);
   void CalculateKinematics();
   void CalculateKinematics(event *kinematic);
+  void GenerateAsymmetry(char *options);
+
+  double CalculateAsymmetry(double *x, double *par);
 
   void OpenOutputFile(char *filename);
 
   void WriteHeader();
   void WriteEvent(int, int, double, double, double, double);
   void ProcessEvent();
+  void PrintEvent();
   void CloseOutputFile();
 
-  TF2* GetFunction();
+  TF1* GetFunction(char *options);
 
 
 };

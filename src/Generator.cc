@@ -1,3 +1,4 @@
+
 #define Generator_cxx
 #include "../include/Generator.hh"
 
@@ -157,6 +158,7 @@ double Generator::CalculateAsymmetry(double *x = 0, double *par = 0)
 
 void Generator::OpenOutputFile(char *filename)
 {
+
   output.open(filename, std::fstream::out);
 
   if(!(output.is_open())){

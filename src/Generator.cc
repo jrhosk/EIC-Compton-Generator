@@ -1,7 +1,5 @@
-
 #define Generator_cxx
 #include "../include/Generator.hh"
-
 #include "TF2.h"
 #include "TF1.h"
 #include "TMath.h"
@@ -57,6 +55,7 @@ void Generator::Initialize(){
   cs = new TF1("cs", this, &Generator::CrossSection, 0.0, 1.0, 3, "Generator", "CrossSection");
   cs->SetParameters(beam_energy, laser_energy, polarization);
   cs->SetNpx(1000);
+  
 }
 
 void Generator::SetBeamEnergy(double energy){ 
@@ -104,8 +103,6 @@ void Generator::CalculateKinematics()
   double rho  = 0;
 
   rho = cs->GetRandom();
-
-  std::cout << ">>>> Rho " << rho << std::endl;
 
   kinematics.kmax = 4*alpha*laser_energy*std::pow(beam_energy/electron_mass_c2, 2); // The maximum scattered photon energy or minimum electron energy
 

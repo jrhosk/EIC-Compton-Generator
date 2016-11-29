@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
   TApplication theApp("App", &argc, argv);
 
-  int nevents = 2;
+  int nevents = 10;
 
   char *filename;
 
@@ -30,19 +30,15 @@ int main(int argc, char **argv)
   compton->SetBeamEnergy(5);
   compton->SetLaserEnergy(2.33e-9);
   // compton->SetBeamEnergy(8);
-  // compton->SetLaserEnergy(1.165e-9);
+  // compton->SetLaserEnergy(1.164e-9);
   compton->SetPolarization(1.0);
 
   compton->Initialize();
-  //  compton->GetFunction()->SetNpx(1000);
 
   TCanvas *canvas = new TCanvas("canvas", "canvas");
-  // canvas->Divide(1,2);
   canvas->cd();
-  // compton->GetFunction("cs")->Draw("");
 
   compton->GenerateAsymmetry((char *)""); // The char * casting removes a deprecatred warning caused by difference between char * in C and C++
-  // canvas->cd(2);
   compton->GetFunction((char *)"asym")->Draw();
 
   gRandom->SetSeed(0);

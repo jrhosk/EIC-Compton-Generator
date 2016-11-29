@@ -29,8 +29,6 @@ int main(int argc, char **argv)
 
   compton->SetBeamEnergy(5);
   compton->SetLaserEnergy(2.33e-9);
-  // compton->SetBeamEnergy(8);
-  // compton->SetLaserEnergy(1.164e-9);
   compton->SetPolarization(1.0);
 
   compton->Initialize();

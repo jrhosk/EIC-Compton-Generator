@@ -180,18 +180,6 @@ void Generator::WriteHeader()
 }
 void Generator::WriteEvent(int index, int pid, double px, double py, double pz, double momentum)
 {
-  // output << index
-  // 	 << " 0. 1 "
-  // 	 << pid
-  // 	 << " 0. 0. "
-  // 	 << px << " "
-  // 	 << py << " "
-  // 	 << pz << " "
-  // 	 << momentum << " "
-  // 	 << "0." << " "
-  // 	 << kinematics.vx << " "
-  // 	 << kinematics.vy << " "
-  // 	 << kinematics.vz << "\n";
 
   output << index
          << " 0. 1 "
@@ -201,7 +189,11 @@ void Generator::WriteEvent(int index, int pid, double px, double py, double pz, 
          << py << " "
          << pz << " "
          << momentum << " "
-         << alpha << "-29.29464 0.0 -2287.855\n";
+    // << alpha << "-29.29464 0.0 -2287.855\n";                                                                                                                                 
+	 << alpha << " "
+         << kinematics.vx << " "
+         << kinematics.vy << " "
+         << kinematics.vz << "\n";
   
 }
 

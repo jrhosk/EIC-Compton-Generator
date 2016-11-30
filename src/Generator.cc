@@ -101,17 +101,23 @@ double Generator::GetPhotonPz(){return kinematics.kz;}
 void Generator::CalculateKinematics()
 {
   double rho  = 0;
+  double electron_prime = 0;
 
   rho = cs->GetRandom();
+  kinematics.photon_phi = gRandom->Uniform(0, 2*TMath::Pi()); // Sample from a uniform distribution of phi
 
   kinematics.kmax = 4*alpha*laser_energy*std::pow(beam_energy/electron_mass_c2, 2); // The maximum scattered photon energy or minimum electron energy
 
   kinematics.photon_momentum = rho*kinematics.kmax;                               
   kinematics.electron_phi = -kinematics.photon_phi;                    
 
-  kinematics.electron_momentum = std::sqrt(std::pow(beam_energy, 2) - std::pow(electron_mass_c2, 2)); 
-  // kinematics.photon_theta = std::sqrt(4*laser_energy*alpha/kinematics.photon_momentum-std::pow(electron_mass_c2/beam_energy, 2));
-  kinematics.photon_theta = std::sqrt( 4.*kinematics.photon_momentum/kinematics.kmax - 1./(alpha*std::pow(beam_energy/electron_mass_c2, 2)));
+  electron_prime = beam_energy + laser_energy - kinematics.photon_momentum;
+
+  // kinematics.electron_momentum = std::sqrt(std::pow(beam_energy, 2) - std::pow(electron_mass_c2, 2)); 
+  kinematics.electron_momentum = std::sqrt(std::pow(electron_prime, 2) - std::pow(electron_mass_c2, 2)); 
+
+  kinematics.photon_theta = std::sqrt(4*laser_energy*alpha/kinematics.photon_momentum-std::pow(electron_mass_c2/beam_energy, 2));
+  // kinematics.photon_theta = std::sqrt( 4.*kinematics.photon_momentum/kinematics.kmax - 1./(alpha*std::pow(beam_energy/electron_mass_c2, 2)));
   kinematics.electron_theta = std::asin(kinematics.photon_momentum*std::sin(kinematics.photon_theta)/kinematics.electron_momentum); // check this
 
   kinematics.px = kinematics.electron_momentum*std::sin(kinematics.electron_theta)*std::sin(kinematics.electron_phi);

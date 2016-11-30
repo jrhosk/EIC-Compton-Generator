@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <math.h>
+#include "TRandom.h"
 
 #ifndef Generator_h
 #define Generator_h 

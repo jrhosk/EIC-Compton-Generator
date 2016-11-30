@@ -17,9 +17,9 @@
 int main(int argc, char **argv)
 {
 
-  TApplication theApp("App", &argc, argv);
+  //  TApplication theApp("App", &argc, argv);
 
-  int nevents = 10;
+  int nevents = 1e6;
 
   char *filename;
 
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
   std::cout << "Finished." << std::endl;
 
-  theApp.Run();
+  //  theApp.Run();
 
   return 0;
 }

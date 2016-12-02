@@ -39,7 +39,7 @@ Double_t Generator::CrossSection(Double_t *x = 0, Double_t *par = 0)
 
   // Polarized longitudinal cross section
 
-  Double_t term3 = (1-rho*(1+alpha))*(1-( 1/(1-rho*(1-alpha))));
+  Double_t term3 = (1-rho*(1+alpha))*TMath::Power((1-(1/(1-rho*(1-alpha)))),2);
   Double_t fdSig_dRho_1 =2*TMath::Pi()*TMath::Power(electron_radius, 2)*alpha*term3;
 
   // Total cross section for zero transverse polarization

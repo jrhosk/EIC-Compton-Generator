@@ -17,9 +17,9 @@
 int main(int argc, char **argv)
 {
 
-  //  TApplication theApp("App", &argc, argv);
+  TApplication theApp("App", &argc, argv);
 
-  int nevents = 1e6;
+  int nevents = 1e3;
 
   char *filename;
 
@@ -29,15 +29,16 @@ int main(int argc, char **argv)
 
   compton->SetBeamEnergy(5);
   compton->SetLaserEnergy(2.33e-9);
-  compton->SetPolarization(1.0);
+  compton->SetPolarization(-1.0);
 
   compton->Initialize();
 
   TCanvas *canvas = new TCanvas("canvas", "canvas");
   canvas->cd();
 
-  compton->GenerateAsymmetry((char *)""); // The char * casting removes a deprecatred warning caused by difference between char * in C and C++
-  compton->GetFunction((char *)"asym")->Draw();
+  // compton->GenerateAsymmetry((char *)""); // The char * casting removes a deprecatred warning caused by difference between char * in C and C++
+  // compton->GetFunction((char *)"asym")->Draw();
+  compton->GetFunction((char *)"cs")->Draw();
 
   gRandom->SetSeed(0);
   
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
 
   std::cout << "Finished." << std::endl;
 
-  //  theApp.Run();
+  theApp.Run();
 
   return 0;
 }

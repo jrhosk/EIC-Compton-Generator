@@ -3,10 +3,14 @@
 #include "TF2.h"
 #include "TF1.h"
 #include "TMath.h"
+#include "../include/FontColor.hh"
 
 #ifdef Generator_cxx
 
-Generator::Generator(char *options){}
+Generator::Generator(char *options): fGraphicsShow(false), fNumberEvents(1000)
+{
+  fFileName = (char *)"lund.dat";
+}
 
 // Generator::Generator(double beam_e, double laser_e, double polar, char *options)
 // {
@@ -161,13 +165,25 @@ double Generator::CalculateAsymmetry(double *x = 0, double *par = 0)
   return asymmetry;
 }
 
+void Generator::OpenOutputFile()
+{
+
+  output.open(fFileName, std::fstream::out);
+
+  if(!(output.is_open())){
+    std::cerr << red << "Failure to open output file. Exiting." << white << std::endl;
+    exit(1);
+  }
+
+}
+
 void Generator::OpenOutputFile(char *filename)
 {
 
   output.open(filename, std::fstream::out);
 
   if(!(output.is_open())){
-    std::cerr << "Failure to open output file. Exiting." << std::endl;
+    std::cerr << red << "Failure to open output file. Exiting." << white << std::endl;
     exit(1);
   }
 
@@ -263,6 +279,8 @@ void Generator::CloseOutputFile()
   output.close();
 }
 
+int Generator::GetNumberEvents(){return fNumberEvents;}
+
 TF1* Generator::GetFunction(char *option)
 {
 
@@ -277,6 +295,52 @@ TF1* Generator::GetFunction(char *option)
       return asym;
     }
     return NULL;
+}
+
+void Generator::GetOptions(char **options)
+{
+
+  Int_t i = 0;
+
+  TString flag;
+
+  while(options[i] != NULL){
+    flag = options[i];
+
+    if(flag.CompareTo("--graphics", TString::kExact) == 0){
+      flag.Clear();
+      fGraphicsShow = true;
+
+      std::cout << green << "<<<< Initializing TApplication for plots.\t" << white << std::endl;
+    }
+    if(flag.CompareTo("--filename", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      fFileName = options[i + 1];
+      std::cout << green << "<<<< Output file set to: " << fFileName << white << std::endl;
+    }
+    if(flag.CompareTo("--events", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      fNumberEvents = atoi(options[i + 1]);
+      std::cout << green << "<<<< Number of events generated: " << fNumberEvents << white << std::endl;
+    }
+    i++;
+  }
+
+}
+
+void Generator::InitGraphicsEngine(int Argc, char **Argv)
+{
+  std::cout << green << "<<<< Initialize Graphics Engine." << white << std::endl;
+  app = new TApplication("App", &Argc, Argv);
+
+}
+
+void Generator::RunGraphicsEngine()
+{
+  std::cout << green << "<<<< Running Graphics Engine." << white << std::endl;
+  app->Run();
 }
 
 #endif

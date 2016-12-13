@@ -12,20 +12,17 @@
 
 // Generator
 #include "Generator.hh"
+#include "FontColor.hh"
 
 
 int main(int argc, char **argv)
 {
 
-  TApplication theApp("App", &argc, argv);
-
-  int nevents = 1e3;
-
-  char *filename;
-
-  filename = argv[1];
 
   Generator *compton = new Generator();
+
+  compton->GetOptions(argv);
+  if(compton->fGraphicsShow) compton->InitGraphicsEngine(argc, argv); 
 
   compton->SetBeamEnergy(5);
   compton->SetLaserEnergy(2.33e-9);
@@ -42,23 +39,28 @@ int main(int argc, char **argv)
 
   gRandom->SetSeed(0);
   
-  std::cout << "<<< Random seed: " << gRandom->GetSeed() << std::endl;
+  std::cout << green << "<<<< Random seed: " << gRandom->GetSeed() << white << std::endl;
 
   compton->SetEventVertex(-29.29464, 0.0, -2287.855);
   // compton->SetEventVertex(0.00474491, -0.0061297, 8000);
-  compton->OpenOutputFile(filename);
+  compton->OpenOutputFile();
 
-  for(int i = 0; i < nevents; i++)
+  for(int i = 0; i < (int)(compton->GetNumberEvents()); i++)
     {
+      if(i % 1000 == 0) std::cout << i << std::endl;
       compton->CalculateKinematics();
       compton->ProcessEvent();
     
     }
+
   compton->CloseOutputFile();
 
-  std::cout << "Finished." << std::endl;
+  if(compton->fGraphicsShow){
+    compton->RunGraphicsEngine(); 
+  }
 
-  theApp.Run();
+  std::cout << green << "Finished." << white << std::endl;
 
+  
   return 0;
 }

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <math.h>
 #include "TRandom.h"
+#include "TApplication.h"
 
 #ifndef Generator_h
 #define Generator_h 
@@ -54,6 +55,18 @@ public:
   static const int pid_electron = 11;
   static const int pid_photon   = 22;
 
+  // **** Flags & Options ****
+
+  bool fGraphicsShow;
+
+  int fNumberEvents;
+
+  char *fFileName;
+
+  // *************************
+
+  TApplication *app; 
+
   std::fstream output;
 
   event kinematics;        // Defined above and holds the scattering kinematics
@@ -100,6 +113,7 @@ public:
 
   double CalculateAsymmetry(double *x, double *par);
 
+  void OpenOutputFile();
   void OpenOutputFile(char *filename);
 
   void WriteHeader();
@@ -108,8 +122,13 @@ public:
   void PrintEvent();
   void CloseOutputFile();
 
+  int GetNumberEvents();
+
   TF1* GetFunction(char *options);
 
+  void GetOptions(char **);
+  void InitGraphicsEngine(int Argc, char **Argv);
+  void RunGraphicsEngine();
 
 };
 

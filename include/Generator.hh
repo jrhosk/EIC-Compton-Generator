@@ -38,6 +38,9 @@ private:
     double vy;               // Event vertex Y
     double vz;               // Event vertex Z
 
+    double rho;              // k/k_max for photon
+    double asymmetry;        // Calculated asymmetry
+
   };
 
   TF1 *cs;
@@ -60,12 +63,23 @@ public:
   bool fGraphicsShow;
 
   int fNumberEvents;
-
+  double fPolarization;
   char *fFileName;
+
+  double sigma_x;
+  double sigma_y;
+
+  // double sigma_x = 226.6e-4;    // sigma of the beam in x 5 GeV
+  // double sigma_y = 99e-4;       // sigma of the beam in y 5 GeV
+
+  // const double sigma_x = 434e-4;    // sigma of the beam in x 11 GeV
+  // const double sigma_y = 199e-4;       // sigma of the beam in y 11 GeV
 
   // *************************
 
   TApplication *app; 
+
+  // TGraph *graph;
 
   std::fstream output;
 
@@ -110,8 +124,12 @@ public:
   void CalculateKinematics();
   void CalculateKinematics(event *kinematic);
   void GenerateAsymmetry(char *options);
+  void BuildGeneratedAsymmetryPlot();
 
   double CalculateAsymmetry(double *x, double *par);
+  double RhoToAsymmetry(double, double, double);
+  
+  static double BeamEnvelope(double *x, double *par);
 
   void OpenOutputFile();
   void OpenOutputFile(char *filename);
@@ -129,6 +147,7 @@ public:
   void GetOptions(char **);
   void InitGraphicsEngine(int Argc, char **Argv);
   void RunGraphicsEngine();
+  void PrintAsymmetryInfo();
 
 };
 

@@ -10,6 +10,10 @@
 Generator::Generator(char *options): fGraphicsShow(false), fNumberEvents(1000)
 {
   fFileName = (char *)"lund.dat";
+  fPolarization = 1.0;
+  sigma_x = 226.6e-4;
+  sigma_y = 99e-4;
+
 }
 
 // Generator::Generator(double beam_e, double laser_e, double polar, char *options)
@@ -24,36 +28,51 @@ Generator::Generator(char *options): fGraphicsShow(false), fNumberEvents(1000)
 Generator::~Generator(){}
 
 
-Double_t Generator::CrossSection(Double_t *x = 0, Double_t *par = 0)
+double Generator::CrossSection(double *x = 0, double *par = 0)
 {
 
-  Double_t rho        = x[0];
-  // Double_t phi        = x[1];
-  Double_t b_energy   = par[0];
-  Double_t l_energy   = par[1];
-  Double_t P          = par[2];
+  double rho        = x[0];
+  // double phi        = x[1];
+  double b_energy   = par[0];
+  double l_energy   = par[1];
+  double P          = par[2];
 
   alpha = 1/(1 + (4*l_energy*b_energy)/(electron_mass_c2*electron_mass_c2));  
 
   // Unpolarized cross section
 
-  Double_t term1 = (rho*rho*(1-alpha)*(1-alpha))/(1-rho*(1-alpha));
-  Double_t term2 = TMath::Power((1-rho*(1+alpha))/(1-rho*(1-alpha)), 2);
-  Double_t fdSig_dRho_0 = TMath::Power(electron_radius, 2)*alpha*(term1 + 1 + term2);
+  double term1 = (rho*rho*(1-alpha)*(1-alpha))/(1-rho*(1-alpha));
+  double term2 = TMath::Power((1-rho*(1+alpha))/(1-rho*(1-alpha)), 2);
+  double fdSig_dRho_0 = TMath::Power(electron_radius, 2)*alpha*(term1 + 1 + term2);
 
   // Polarized longitudinal cross section
 
-  // Double_t term3 = (1-rho*(1+alpha))*TMath::Power((1-(1/(1-rho*(1-alpha)))),2);
-  Double_t term3 = (1-rho*(1+alpha))*(1-(1/TMath::Power( (1-rho*(1-alpha)),2) ));
-
-  Double_t fdSig_dRho_1 =TMath::Power(electron_radius, 2)*alpha*term3;
+  double term3 = (1-rho*(1+alpha))*(1-(1/TMath::Power( (1-rho*(1-alpha)),2) ));
+  double fdSig_dRho_1 =TMath::Power(electron_radius, 2)*alpha*term3;
 
   // Total cross section for zero transverse polarization
 
-  Double_t fdSig_dRho = fdSig_dRho_0 + P*fdSig_dRho_1;
+  double fdSig_dRho = fdSig_dRho_0 + P*fdSig_dRho_1;
 
   return fdSig_dRho;
 
+}
+
+double Generator::BeamEnvelope(double *x, double *par){
+  // Simple gaussian describing the core beam envelope.
+
+  double pos = x[0];
+
+  double sig = par[0];
+  double diff_cross_section = 0;
+
+  double top  = TMath::Power(pos, 2);
+  double bot  = TMath::Power(sig, 2);
+
+  diff_cross_section = TMath::Exp(-(top)/(2*bot) );
+
+
+  return diff_cross_section;
 }
 
 void Generator::Initialize(){
@@ -106,15 +125,17 @@ double Generator::GetPhotonPz(){return kinematics.kz;}
 
 void Generator::CalculateKinematics()
 {
-  double rho  = 0;
+  // double rho  = 0;
   double electron_prime = 0;
 
-  rho = cs->GetRandom();
+  kinematics.rho = cs->GetRandom();
+
+  // kinematics.rho = rho;
   kinematics.photon_phi = gRandom->Uniform(0, 2*TMath::Pi()); // Sample from a uniform distribution of phi
 
   kinematics.kmax = 4*alpha*laser_energy*std::pow(beam_energy/electron_mass_c2, 2); // The maximum scattered photon energy or minimum electron energy
 
-  kinematics.photon_momentum = rho*kinematics.kmax;                               
+  kinematics.photon_momentum = kinematics.rho*kinematics.kmax;                               
   kinematics.electron_phi = -kinematics.photon_phi;                    
 
   electron_prime = beam_energy + laser_energy - kinematics.photon_momentum;
@@ -134,6 +155,15 @@ void Generator::CalculateKinematics()
   kinematics.ky = kinematics.photon_momentum*std::sin(kinematics.photon_theta)*std::cos(kinematics.photon_phi);
   kinematics.kz = kinematics.photon_momentum*std::cos(kinematics.photon_theta);
 
+  kinematics.asymmetry = RhoToAsymmetry(beam_energy, laser_energy, kinematics.rho);
+  // PrintAsymmetryInfo();
+}
+
+void Generator::PrintAsymmetryInfo()
+{
+  std::cout << kinematics.rho << "\t"
+	    << kinematics.asymmetry
+	    << std::endl;
 }
 
 void Generator::CalculateKinematics(event *kinematic){}
@@ -149,8 +179,27 @@ double Generator::CalculateAsymmetry(double *x = 0, double *par = 0)
 {
 
   double rho = x[0];
-  Double_t b_energy   = par[0];
-  Double_t l_energy   = par[1];
+  double b_energy   = par[0];
+  double l_energy   = par[1];
+
+  alpha = 1/(1 + (4*l_energy*b_energy)/(electron_mass_c2*electron_mass_c2));  
+
+  double minus = rho*(1-alpha);
+  double plus  = rho*(1+alpha);
+  double term1 = 1/( (std::pow(minus, 2)/(1-minus)) + 1 + std::pow((1-plus)/(1-minus),2));
+  double term2 = 1-plus;
+  double term3 = 1-(1/std::pow(1-minus,2));
+
+  double asymmetry = term1*term2*term3;
+
+  return asymmetry;
+}
+
+double Generator::RhoToAsymmetry(double b_energy = 0, double l_energy = 0, double rho = 0)
+{
+
+  // double b_energy   = par[0];
+  // double l_energy   = par[1];
 
   alpha = 1/(1 + (4*l_energy*b_energy)/(electron_mass_c2*electron_mass_c2));  
 
@@ -195,10 +244,13 @@ void Generator::WriteHeader()
 
   output << "2 "
          << beam_energy << " "
-         << laser_energy
+         << laser_energy << " "
          << kinematics.kmax << " "
 	 << polarization << " "
-         << "0. 0. 0. 0. 0. \n";
+         // << "0. 0. 0. 0. 0. \n";
+	 << kinematics.rho << " "
+	 << kinematics.asymmetry << " "
+	 << "0. 0. 0. \n";
 
 
 }
@@ -207,8 +259,10 @@ void Generator::WriteEvent(int index, int pid, double px, double py, double pz, 
 
   output << index
          << " 0. 1 "
-         << pid
-         << " 0 0 "
+         << pid << " "
+	 << " 0 0 "
+	 // << kinematics.rho << " "
+	 // << kinematics.asymmetry << " "
          << px << " "
          << py << " "
          << pz << " "
@@ -231,6 +285,16 @@ void Generator::ProcessEvent()
   WriteEvent(2, pid_electron, -kinematics.px, -kinematics.py, -kinematics.pz, kinematics.electron_momentum);
 
   //  PrintEvent();
+
+}
+
+// void InitGeneratedAsymmetryGraph(int nevents)
+// {
+
+// }
+
+void Generator::BuildGeneratedAsymmetryPlot()
+{
 
 }
 
@@ -318,6 +382,45 @@ void Generator::GetOptions(char **options)
       flag.Clear();
       fFileName = options[i + 1];
       std::cout << green << "<<<< Output file set to: " << fFileName << white << std::endl;
+    }
+    if(flag.CompareTo("--polarization", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      fPolarization = atof(options[i + 1]);
+      std::cout << green << "<<<< Polarization set to: " << fPolarization << white << std::endl;
+    }
+    if(flag.CompareTo("--energy", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      beam_energy = atof(options[i + 1]);
+      if(beam_energy == 3){
+	sigma_x = 136e-4;
+	sigma_y = 56e-4;
+      }
+      if(beam_energy == 5){
+	sigma_x = 226.6e-4;
+	sigma_y = 99e-4;
+      }
+      if(beam_energy == 11){
+	sigma_x = 356e-4;
+	sigma_y = 115e-4;
+      }
+      std::cout << green << "<<<< Beam energy set to: " << beam_energy 
+		<< "\n\tsigma x: " << sigma_x 
+		<< "\n\tsigma y: " << sigma_y 
+		<< white << std::endl;
+    }
+    if(flag.CompareTo("--sigmax", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      sigma_x = atof(options[i + 1]);
+      std::cout << green << "<<<< Beam X-dispersion set to: " << sigma_x << white << std::endl;
+    }
+    if(flag.CompareTo("--sigmay", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      sigma_y = atof(options[i + 1]);
+      std::cout << green << "<<<< Beam Y-dispersion set to: " << sigma_y << white << std::endl;
     }
     if(flag.CompareTo("--events", TString::kExact) == 0){
       std::string option(options[i+1]);

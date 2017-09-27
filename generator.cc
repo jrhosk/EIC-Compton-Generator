@@ -28,6 +28,7 @@ int main(int argc, char **argv)
   compton->SetPolarization(compton->fPolarization);            // Defined as P=-1 (left), P=1 (right)
 
   compton->GetOptions(argv);
+  std::cout << "Polrization: " << compton->fPolarization << std::endl;
   if(compton->fGraphicsShow) compton->InitGraphicsEngine(argc, argv); 
 
   compton->Initialize();

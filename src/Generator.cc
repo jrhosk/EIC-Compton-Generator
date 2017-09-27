@@ -78,7 +78,7 @@ double Generator::BeamEnvelope(double *x, double *par){
 void Generator::Initialize(){
 
   cs = new TF1("cs", this, &Generator::CrossSection, 0.0, 1.0, 3, "Generator", "CrossSection");
-  cs->SetParameters(beam_energy, laser_energy, polarization);
+  cs->SetParameters(beam_energy, laser_energy, fPolarization);
   cs->SetNpx(1000);
   
 }
@@ -93,14 +93,14 @@ void Generator::SetLaserWaveLength(double lambda){
   if(lambda > 0) laser_energy = h_planck*c_light/lambda;
 }
 void Generator::SetPolarization(double polar){ 
-  polarization = polar;
+  fPolarization = polar;
 }
 
 double Generator::GetBeamEnergy(){return beam_energy;}
 
 double Generator::GetLaserEnergy(){return laser_energy;}
 
-double Generator::GetPolarization(){return polarization;}
+double Generator::GetPolarization(){return fPolarization;}
 
 double Generator::GetElectronMomentum(){return kinematics.electron_momentum;}
 
@@ -246,7 +246,7 @@ void Generator::WriteHeader()
          << beam_energy << " "
          << laser_energy << " "
          << kinematics.kmax << " "
-	 << polarization << " "
+	 << fPolarization << " "
          // << "0. 0. 0. 0. 0. \n";
 	 << kinematics.rho << " "
 	 << kinematics.asymmetry << " "

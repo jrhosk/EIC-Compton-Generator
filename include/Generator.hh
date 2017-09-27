@@ -88,7 +88,6 @@ public:
   double alpha;            // Kinematic variable
   double laser_energy;     // Initial photon energy (eV)
   double beam_energy;      // Initial electron energy (eV)
-  double polarization;     // Beam polarization
 
   Generator(char *options = 0);
   // Generator(double, double, double, char *options);

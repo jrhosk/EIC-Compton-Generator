@@ -50,36 +50,51 @@ private:
 
 public:
 
+#if __cplusplus >= 201103L
+
+  static constexpr double electron_mass_c2 = 0.5109989461e-3;   // GeV/c^2
+  static constexpr double electron_radius  = 2.817e-13;         // Classical electron radius (cm)
+  static constexpr double h_planck         = 6.626070040e-34;   // Planck constant (J*s)
+  static constexpr double c_light          = 2.99792458e8;      // Speed of light (m/s)
+
+  static constexpr int pid_electron = 11;
+  static constexpr int pid_photon   = 22;
+
+#else
+
   static const double electron_mass_c2 = 0.5109989461e-3;   // GeV/c^2
   static const double electron_radius  = 2.817e-13;         // Classical electron radius (cm)
-  static const double h_planck = 6.626070040e-34;           // Planck constant (J*s)
-  static const double c_light  = 2.99792458e8;              // Speed of light (m/s)
+  static const double h_planck         = 6.626070040e-34;   // Planck constant (J*s)
+  static const double c_light          = 2.99792458e8;      // Speed of light (m/s)
 
   static const int pid_electron = 11;
   static const int pid_photon   = 22;
 
+#endif
+
+
+
+
   // **** Flags & Options ****
 
   bool fGraphicsShow;
+  bool fHaloGenerator;
+  bool fComptonGenerator;
 
   int fNumberEvents;
+  int fNumberofParticles;
   double fPolarization;
   char *fFileName;
 
   double sigma_x;
   double sigma_y;
-
-  // double sigma_x = 226.6e-4;    // sigma of the beam in x 5 GeV
-  // double sigma_y = 99e-4;       // sigma of the beam in y 5 GeV
-
-  // const double sigma_x = 434e-4;    // sigma of the beam in x 11 GeV
-  // const double sigma_y = 199e-4;       // sigma of the beam in y 11 GeV
-
-  // *************************
+  double cutoffx;
+  double cutoffy;
+  double halo_scale_x;
+  double halo_scale_y;
+  double upper_limit;     // Upper limit is set by the size of the beam pipe inner radius.
 
   TApplication *app; 
-
-  // TGraph *graph;
 
   std::fstream output;
 
@@ -87,10 +102,9 @@ public:
 
   double alpha;            // Kinematic variable
   double laser_energy;     // Initial photon energy (eV)
-  double beam_energy;      // Initial electron energy (eV)
+  double beam_energy;      // Initial electron energy (GeV)
 
   Generator(char *options = 0);
-  // Generator(double, double, double, char *options);
   ~Generator();
 
   Double_t CrossSection(Double_t *x, Double_t *par);
@@ -129,13 +143,16 @@ public:
   double RhoToAsymmetry(double, double, double);
   
   static double BeamEnvelope(double *x, double *par);
+  static double HaloFunctionX(double *x, double *par);
+  static double HaloFunctionY(double *x, double *par);
 
   void OpenOutputFile();
   void OpenOutputFile(char *filename);
 
   void WriteHeader();
   void WriteEvent(int, int, double, double, double, double);
-  void ProcessEvent();
+  void ProcessComptonEvent();
+  void ProcessHaloEvent();
   void PrintEvent();
   void CloseOutputFile();
 
@@ -147,7 +164,7 @@ public:
   void InitGraphicsEngine(int Argc, char **Argv);
   void RunGraphicsEngine();
   void PrintAsymmetryInfo();
-
+  void PrintHelp();
 };
 
 #endif

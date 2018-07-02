@@ -3,27 +3,30 @@
 #include "TF2.h"
 #include "TF1.h"
 #include "TMath.h"
-#include "../include/FontColor.hh"
+
+// Custom Libraries
+#include "PhysicalConstants.hh"
+#include "MsgStream.hh"
+#include "SysMsg.hh"
 
 #ifdef Generator_cxx
 
-Generator::Generator(char *options): fGraphicsShow(false), fNumberEvents(1000)
+Generator::Generator(char *options)
 {
   fFileName = (char *)"lund.dat";
-  fPolarization = 1.0;
+  fPolarization = 0.97;
   sigma_x = 226.6e-4;
   sigma_y = 99e-4;
-
+  cutoffx = 0.0;
+  cutoffy = 0.0;
+  halo_scale_x = 10;
+  halo_scale_y = 10;
+  fGraphicsShow = false;
+  fNumberEvents = 1000;
+  fHaloGenerator = false;
+  fComptonGenerator = false;
+  upper_limit = 7.3024;
 }
-
-// Generator::Generator(double beam_e, double laser_e, double polar, char *options)
-// {
-
-//   beam_energy = beam_e;
-//   laser_energy = laser_e;
-//   polarization = polar;
-
-// }
 
 Generator::~Generator(){}
 
@@ -32,7 +35,6 @@ double Generator::CrossSection(double *x = 0, double *par = 0)
 {
 
   double rho        = x[0];
-  // double phi        = x[1];
   double b_energy   = par[0];
   double l_energy   = par[1];
   double P          = par[2];
@@ -80,7 +82,6 @@ void Generator::Initialize(){
   cs = new TF1("cs", this, &Generator::CrossSection, 0.0, 1.0, 3, "Generator", "CrossSection");
   cs->SetParameters(beam_energy, laser_energy, fPolarization);
   cs->SetNpx(1000);
-  
 }
 
 void Generator::SetBeamEnergy(double energy){ 
@@ -161,9 +162,9 @@ void Generator::CalculateKinematics()
 
 void Generator::PrintAsymmetryInfo()
 {
-  std::cout << kinematics.rho << "\t"
-	    << kinematics.asymmetry
-	    << std::endl;
+  Sys::SysMsg << kinematics.rho << "\t"
+	      << kinematics.asymmetry
+	      << Sys::endl;
 }
 
 void Generator::CalculateKinematics(event *kinematic){}
@@ -190,7 +191,7 @@ double Generator::CalculateAsymmetry(double *x = 0, double *par = 0)
   double term2 = 1-plus;
   double term3 = 1-(1/std::pow(1-minus,2));
 
-  double asymmetry = term1*term2*term3;
+  double asymmetry = fPolarization*term1*term2*term3;
 
   return asymmetry;
 }
@@ -209,7 +210,7 @@ double Generator::RhoToAsymmetry(double b_energy = 0, double l_energy = 0, doubl
   double term2 = 1-plus;
   double term3 = 1-(1/std::pow(1-minus,2));
 
-  double asymmetry = term1*term2*term3;
+  double asymmetry = fPolarization*term1*term2*term3;
 
   return asymmetry;
 }
@@ -220,7 +221,7 @@ void Generator::OpenOutputFile()
   output.open(fFileName, std::fstream::out);
 
   if(!(output.is_open())){
-    std::cerr << red << "Failure to open output file. Exiting." << white << std::endl;
+    Sys::SysError << __FUNCTION__ << "Failure to open output file. Exiting." << Sys::endl;
     exit(1);
   }
 
@@ -232,7 +233,7 @@ void Generator::OpenOutputFile(char *filename)
   output.open(filename, std::fstream::out);
 
   if(!(output.is_open())){
-    std::cerr << red << "Failure to open output file. Exiting." << white << std::endl;
+    Sys::SysError << __FUNCTION__ << "Failure to open output file. Exiting." << Sys::endl;
     exit(1);
   }
 
@@ -242,7 +243,7 @@ void Generator::WriteHeader()
 {
   event_counter++;
 
-  output << "2 "
+  output << fNumberofParticles << " "
          << beam_energy << " "
          << laser_energy << " "
          << kinematics.kmax << " "
@@ -275,7 +276,7 @@ void Generator::WriteEvent(int index, int pid, double px, double py, double pz, 
   
 }
 
-void Generator::ProcessEvent()
+void Generator::ProcessComptonEvent()
 {
 
   WriteHeader(); // Write event header for a given event
@@ -283,15 +284,18 @@ void Generator::ProcessEvent()
   // Write event info for each final state particle.
   WriteEvent(1, pid_photon, -kinematics.kx, -kinematics.ky, -kinematics.kz, kinematics.photon_momentum);
   WriteEvent(2, pid_electron, -kinematics.px, -kinematics.py, -kinematics.pz, kinematics.electron_momentum);
-
-  //  PrintEvent();
-
 }
 
-// void InitGeneratedAsymmetryGraph(int nevents)
-// {
+void Generator::ProcessHaloEvent()
+{
 
-// }
+  WriteHeader(); // Write event header for a given event
+
+  kinematics.electron_momentum = beam_energy;
+
+  // Write event info for each final state particle.
+  WriteEvent(1, pid_electron, 0.0, 0.0, -kinematics.electron_momentum, kinematics.electron_momentum);
+}
 
 void Generator::BuildGeneratedAsymmetryPlot()
 {
@@ -301,30 +305,30 @@ void Generator::BuildGeneratedAsymmetryPlot()
 void Generator::PrintEvent()
 {
 
-  std::cout << "\n=====================================\n" << std::endl;
+  Sys::SysMsg << __FUNCTION__ << " \n=====================================\n" << Sys::endl;
 
-  std::cout << "<<<< Electron \n" << std::endl;
-  std::cout << "Electron theta: " << kinematics.electron_theta << std::endl;
-  std::cout << "Electron phi: " << kinematics.electron_phi << std::endl;
-  std::cout << "Electron Momentum: " << kinematics.electron_momentum << std::endl;
-  std::cout << "     ---------------------------     " << std::endl;
-  std::cout << "Electron px: " << kinematics.px << std::endl;
-  std::cout << "Electron py: " << kinematics.py << std::endl;
-  std::cout << "Electron pz: " << kinematics.pz << std::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> \tElectron \n" << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Electron theta: " << kinematics.electron_theta << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Electron phi: " << kinematics.electron_phi << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Electron Momentum: " << kinematics.electron_momentum << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> ---------------------------     " << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Electron px: " << kinematics.px << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Electron py: " << kinematics.py << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Electron pz: " << kinematics.pz << Sys::endl;
 
-  std::cout << "\n\n\n" << std::endl;
+  Sys::SysMsg << __FUNCTION__ << " \n\n\n" << Sys::endl;
 
-  std::cout << "<<<< Photon \n" << std::endl;
-  std::cout << "Photon theta: " << kinematics.photon_theta << std::endl;
-  std::cout << "Photon phi: " << kinematics.photon_phi << std::endl;
-  std::cout << "Photon Momentum: " << kinematics.photon_momentum << std::endl;
-  std::cout << "     ---------------------------     " << std::endl;
-  std::cout << "Photon px: " << kinematics.kx << std::endl;
-  std::cout << "Photon py: " << kinematics.ky << std::endl;
-  std::cout << "Photon pz: " << kinematics.kz << std::endl;
-  std::cout << "\nPhoton max: " << kinematics.kmax << std::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> \tPhoton \n" << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Photon theta: " << kinematics.photon_theta << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Photon phi: " << kinematics.photon_phi << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Photon Momentum: " << kinematics.photon_momentum << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << "     ---------------------------     " << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Photon px: " << kinematics.kx << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Photon py: " << kinematics.ky << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Photon pz: " << kinematics.kz << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> Photon max: " << kinematics.kmax << Sys::endl;
 
-  std::cout << "\n=====================================\n" << std::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> =====================================\n" << Sys::endl;
 
 }
 
@@ -371,78 +375,178 @@ void Generator::GetOptions(char **options)
   while(options[i] != NULL){
     flag = options[i];
 
+    if(flag.CompareTo("--help", TString::kExact) == 0){
+      flag.Clear();
+      PrintHelp();
+    }
+
     if(flag.CompareTo("--graphics", TString::kExact) == 0){
       flag.Clear();
       fGraphicsShow = true;
 
-      std::cout << green << "<<<< Initializing TApplication for plots.\t" << white << std::endl;
+      Sys::SysMsg << __FUNCTION__  << "<<<< Initializing TApplication for plots.\t" << Sys::endl;
+    }
+    if(flag.CompareTo("--halo", TString::kExact) == 0){
+      flag.Clear();
+      fHaloGenerator = true;
+      fNumberofParticles = 1;
+
+      Sys::SysMsg << __FUNCTION__ << "<<<< Initializing halo generator.\t" << Sys::endl;
+    }
+    if(flag.CompareTo("--compton", TString::kExact) == 0){
+      flag.Clear();
+      fComptonGenerator = true;
+      fNumberofParticles = 2;
+
+      Sys::SysMsg << __FUNCTION__ << "<<<< Initializing compton generator.\t" << Sys::endl;
     }
     if(flag.CompareTo("--filename", TString::kExact) == 0){
       std::string option(options[i+1]);
       flag.Clear();
       fFileName = options[i + 1];
-      std::cout << green << "<<<< Output file set to: " << fFileName << white << std::endl;
+      Sys::SysMsg << __FUNCTION__ << "<<<< Output file set to: " << fFileName << Sys::endl;
     }
     if(flag.CompareTo("--polarization", TString::kExact) == 0){
       std::string option(options[i+1]);
       flag.Clear();
       fPolarization = atof(options[i + 1]);
-      std::cout << green << "<<<< Polarization set to: " << fPolarization << white << std::endl;
+      Sys::SysMsg << __FUNCTION__ << "<<<< Polarization set to: " << fPolarization << Sys::endl;
     }
     if(flag.CompareTo("--energy", TString::kExact) == 0){
       std::string option(options[i+1]);
       flag.Clear();
       beam_energy = atof(options[i + 1]);
-      if(beam_energy == 3){
-	sigma_x = 136e-4;
-	sigma_y = 56e-4;
-      }
-      if(beam_energy == 5){
-	sigma_x = 226.6e-4;
-	sigma_y = 99e-4;
-      }
-      if(beam_energy == 11){
-	sigma_x = 356e-4;
-	sigma_y = 115e-4;
-      }
-      std::cout << green << "<<<< Beam energy set to: " << beam_energy 
-		<< "\n\tsigma x: " << sigma_x 
-		<< "\n\tsigma y: " << sigma_y 
-		<< white << std::endl;
     }
     if(flag.CompareTo("--sigmax", TString::kExact) == 0){
       std::string option(options[i+1]);
       flag.Clear();
       sigma_x = atof(options[i + 1]);
-      std::cout << green << "<<<< Beam X-dispersion set to: " << sigma_x << white << std::endl;
+      Sys::SysMsg << __FUNCTION__ << "<<<< Beam X-dispersion set to: " << sigma_x << Sys::endl;
     }
     if(flag.CompareTo("--sigmay", TString::kExact) == 0){
       std::string option(options[i+1]);
       flag.Clear();
       sigma_y = atof(options[i + 1]);
-      std::cout << green << "<<<< Beam Y-dispersion set to: " << sigma_y << white << std::endl;
+      Sys::SysMsg << __FUNCTION__ << "<<<< Beam Y-dispersion set to: " << sigma_y << Sys::endl;
+    }
+    if(flag.CompareTo("--halo-scale-x", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      halo_scale_x = atof(options[i + 1]);
+      Sys::SysMsg << __FUNCTION__ << "<<<< Halo X multiplier set to: " << halo_scale_x << Sys::endl;
+    }
+    if(flag.CompareTo("--halo-scale-y", TString::kExact) == 0){
+      std::string option(options[i+1]);
+      flag.Clear();
+      halo_scale_y = atof(options[i + 1]);
+      Sys::SysMsg << __FUNCTION__ << "<<<< Halo Y multiplier set to: " << halo_scale_y << Sys::endl;
+    }
+    if(flag.CompareTo("--cutoffx", TString::kExact) == 0){
+      flag.Clear();
+      std::cout << "<<<< Setting cutoff X:\t" << options[i+1] << std::endl;
+      cutoffx = atof(options[i+1]);  
+    }
+    if(flag.CompareTo("--cutoffy", TString::kExact) == 0){
+      flag.Clear();
+      std::cout << "<<<< Setting cutoff Y:\t" << options[i+1] << std::endl;
+      cutoffy = atof(options[i+1]);  
+    }
+    if(flag.CompareTo("--upper_limit", TString::kExact) == 0){
+      flag.Clear();
+      std::cout << "<<<< Setting upper limit:\t" << options[i+1] << std::endl;
+      upper_limit = atof(options[i+1]);  
     }
     if(flag.CompareTo("--events", TString::kExact) == 0){
       std::string option(options[i+1]);
       flag.Clear();
       fNumberEvents = atoi(options[i + 1]);
-      std::cout << green << "<<<< Number of events generated: " << fNumberEvents << white << std::endl;
+      Sys::SysMsg << __FUNCTION__ << "<<<< Number of events generated: " << fNumberEvents << Sys::endl;
     }
     i++;
   }
+  if(fComptonGenerator){
+    if(beam_energy == 3){
+      sigma_x = 136e-4;
+      sigma_y = 56e-4;
+    }
+    if(beam_energy == 5){
+      sigma_x = 226.6e-4;
+      sigma_y = 99e-4;
+    }
+    if(beam_energy == 10){
+      sigma_x = 434e-4;
+      sigma_y = 199e-4;
+    }
+    Sys::SysMsg << __FUNCTION__ << "<<<< Beam energy set to: " << beam_energy 
+	      << "\n\tsigma x: " << sigma_x 
+	      << "\n\tsigma y: " << sigma_y 
+	      << Sys::endl;
+  }
+}
 
+void Generator::PrintHelp()
+{
+
+  Sys::SysMsg << __FUNCTION__ << " >>> --halo                  [Required] Flag that that turns on halo generation." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --compton               [Required] Flag that that turns on compton generation." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --filename <name>       [Required] Set output filename." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --events <int>          [Required] Set number of events." << Sys::endl;
+
+  Sys::SysMsg << __FUNCTION__ << " >>> --polarization <double>     [Optional] Set polarization of generated events. Defaults to 97%." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --graphics                  [Optional] Flag that turns on graphical output." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --energy <double>           [Optional] Set beam energy. Defaults to 5 GeV." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --halo-scale-x, --halo-scale-y <double> [Optional] Set multiplier that defines halo width compared to beam width. Defaults to x10." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --cutoffx, --cutoffy <double> [Optional] Set lower bound for events pulled from halo distribution. Defaults to 0." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --upperlimit <double>         [Optional] Set beam energy. Defaults to 5 GeV.Set upper limit for events pulled from halo distribution. Defaults to 7.3" << Sys::endl;
+
+}
+
+double Generator::HaloFunctionX(double *x, double *par){
+
+  const double A = 7.2e-5;
+
+  double pos = x[0];
+
+  double sig = par[0];
+  double multiplier = par[1];
+  double diff_cross_section = 0;
+  double top  = TMath::Power(pos, 2);
+  double bot_h = TMath::Power(multiplier*sig, 2);
+ 
+  diff_cross_section = A*TMath::Exp(-(top)/(2*bot_h) );
+  // std::cout << "Sigma:\t" << sig << "\tMultiplier:\t" << multiplier << "\t" << diff_cross_section << std::endl;
+
+  return(diff_cross_section);
+}
+
+double Generator::HaloFunctionY(double *x, double *par){
+
+  const double A = 7.2e-5;
+
+  double pos = x[0];
+
+  double sig = par[0];
+  double multiplier = par[1];
+  double diff_cross_section = 0;
+  double top  = TMath::Power(pos, 2);
+  double bot_h = TMath::Power(multiplier*sig, 2);
+ 
+  diff_cross_section = A*TMath::Exp(-(top)/(2*bot_h) );
+  // std::cout << "Sigma:\t" << sig << "\tMultiplier:\t" << multiplier << "\t" << diff_cross_section << std::endl;
+
+  return(diff_cross_section);
 }
 
 void Generator::InitGraphicsEngine(int Argc, char **Argv)
 {
-  std::cout << green << "<<<< Initialize Graphics Engine." << white << std::endl;
+  Sys::SysMsg << __FUNCTION__ << "<<<< Initialize Graphics Engine." << Sys::endl;
   app = new TApplication("App", &Argc, Argv);
 
 }
 
 void Generator::RunGraphicsEngine()
 {
-  std::cout << green << "<<<< Running Graphics Engine." << white << std::endl;
+  Sys::SysMsg << __FUNCTION__ << "<<<< Running Graphics Engine." << Sys::endl;
   app->Run();
 }
 

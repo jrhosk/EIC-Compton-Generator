@@ -15,20 +15,31 @@
 
 // Generator
 #include "Generator.hh"
-#include "FontColor.hh"
 
+// Addition QoL libraries
+#include "PhysicalConstants.hh"
+#include "MsgStream.hh"
+#include "SysMsg.hh"
 
 int main(int argc, char **argv)
 {
 
   Generator *compton = new Generator();
 
-  compton->SetBeamEnergy(5);
-  compton->SetLaserEnergy(2.33e-9);
-  compton->SetPolarization(compton->fPolarization);            // Defined as P=-1 (left), P=1 (right)
+  compton->SetBeamEnergy(5);                                   // Default polarization
+  compton->SetLaserEnergy(2.33e-9);                            // Laser energy (eV)
+  compton->SetPolarization(compton->fPolarization);            // Defined as P=-P_o (left), P=P_o (right)
 
   compton->GetOptions(argv);
-  std::cout << "Polrization: " << compton->fPolarization << std::endl;
+  if(argc == 0){
+    Sys::SysError << __FUNCTION__ << " >>> Must include arguments! Use --help to see command list." << Sys::endl;
+    exit(1);
+  }
+  if(!(compton->fHaloGenerator) && !(compton->fComptonGenerator)){ 
+    Sys::SysError << __FUNCTION__ << " >>> Must set generator type flag." << Sys::endl;
+    exit(1);
+  }
+  Sys::SysCout << "Polarization: " << compton->fPolarization << Sys::endl;
   if(compton->fGraphicsShow) compton->InitGraphicsEngine(argc, argv); 
 
   compton->Initialize();
@@ -36,7 +47,7 @@ int main(int argc, char **argv)
   TCanvas *canvas = new TCanvas("canvas", "canvas");
   canvas->cd();
 
-  compton->GenerateAsymmetry((char *)""); // The char * casting removes a deprecatred warning caused by difference between char * in C and C++
+  compton->GenerateAsymmetry((char *)"");                     // The char * casting removes a deprecatred warning caused by difference between char * in C and C++
   compton->GetFunction((char *)"asym")->Draw();
 
   std::cout << 2*TMath::Pi()*compton->GetFunction((char *)"cs")->Integral(0,1) << std::endl;
@@ -45,38 +56,65 @@ int main(int argc, char **argv)
 
   gRandom->SetSeed(0);
   
-  std::cout << green << "<<<< Random seed: " << gRandom->GetSeed() << white << std::endl;
+  Sys::SysCout << "<<<< Random seed: " << gRandom->GetSeed() << Sys::endl;
 
-  TF1 *beamx = new TF1("beamx", Generator::BeamEnvelope, -7.0, 7.0, 1); // positions in cm the beam envelope is centered around zero
-  beamx->SetParameter(0, compton->sigma_x); // positions in cm
+  TF1 *beamx = new TF1("beamx", Generator::BeamEnvelope, -compton->upper_limit, compton->upper_limit, 1); // positions in cm the beam envelope is centered around zero
+  beamx->SetParameter(0, compton->sigma_x);                  // positions in cm
   beamx->SetNpx(10000);
 
-  TF1 *beamy = new TF1("beamy", Generator::BeamEnvelope, -7.0, 7.0, 1); // positions in cm the beam envelope is centered around zero
-  beamy->SetParameter(0, compton->sigma_y); // positions in cm
+  TF1 *beamy = new TF1("beamy", Generator::BeamEnvelope, -compton->upper_limit, compton->upper_limit, 1); // positions in cm the beam envelope is centered around zero
+  beamy->SetParameter(0, compton->sigma_y);                  // positions in cm
   beamy->SetNpx(10000);
 
+  TF1 *halox;
+  TF1 *haloy;
+
+  if(compton->fHaloGenerator){
+    halox = new TF1("halox", Generator::HaloFunctionX, compton->cutoffx, compton->upper_limit, 2); // positions in cm
+    halox->SetParameters(compton->sigma_x, compton->halo_scale_x); // positions in cm
+    halox->SetNpx(100000);
+
+    haloy = new TF1("haloy", Generator::HaloFunctionY, compton->cutoffy, compton->upper_limit, 2); // positions in cm
+    haloy->SetParameters(compton->sigma_y, compton->halo_scale_y); // positions in cm
+    haloy->SetNpx(100000);
+  }
 
   compton->OpenOutputFile();
 
+  int sign = 1;
+
   for(int i = 0; i < (int)(compton->GetNumberEvents()); i++)
     {
-
-      compton->SetEventVertex(-29.29464 + beamx->GetRandom(-7.0, 7.0), 0.0 + beamy->GetRandom(-7.0, 7.0), -2287.855); // add in the gaussian nature of the electron beam
-
+      sign *= -1;
+      
+      if(compton->fComptonGenerator) compton->SetEventVertex(-29.29464 + beamx->GetRandom(-7.0, 7.0), 
+       							     beamy->GetRandom(-7.0, 7.0), 
+       							     -2287.855); // add in the gaussian nature of the electron beam
+      
+      
+      if(compton->fHaloGenerator) compton->SetEventVertex(-29.29464 + beamx->GetRandom(-7.0, 7.0) + sign*halox->GetRandom(-7.0, 7.0), 
+							  beamy->GetRandom(-7.0, 7.0) + sign*haloy->GetRandom(-7.0, 7.0), 
+							  -2187.855);    // add in the gaussian nature of the electron beam
+      
       if(i % 10000 == 0) std::cout << i << std::endl;
-      compton->CalculateKinematics();
-      compton->ProcessEvent();
-    
+      if(compton->fComptonGenerator){
+	compton->CalculateKinematics();
+	compton->ProcessComptonEvent();
+      }
+      if(compton->fHaloGenerator){
+	compton->CalculateKinematics();
+	compton->ProcessHaloEvent();
+      }
     }
-
+  
   compton->CloseOutputFile();
-
+  
   if(compton->fGraphicsShow){
     compton->RunGraphicsEngine(); 
   }
-
-  std::cout << green << "Finished." << white << std::endl;
-
+  
+  Sys::SysCout << "Finished." << Sys::endl;
+  
   
   return 0;
 }

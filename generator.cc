@@ -21,6 +21,12 @@
 int main(int argc, char **argv)
 {
 
+  if (argc==1)
+    {
+      std::cout<<"Usage : generator --energy (energy in GeV) --polarization (1 or -1)  --events nevents"<<std::endl;
+      exit(0);
+    }
+  
   Generator *compton = new Generator();
 
   compton->SetBeamEnergy(5);

@@ -50,18 +50,6 @@ private:
 
 public:
 
-#if __cplusplus >= 201103L
-
-  static constexpr double electron_mass_c2 = 0.5109989461e-3;   // GeV/c^2
-  static constexpr double electron_radius  = 2.817e-13;         // Classical electron radius (cm)
-  static constexpr double h_planck         = 6.626070040e-34;   // Planck constant (J*s)
-  static constexpr double c_light          = 2.99792458e8;      // Speed of light (m/s)
-
-  static constexpr int pid_electron = 11;
-  static constexpr int pid_photon   = 22;
-
-#else
-
   static const double electron_mass_c2 = 0.5109989461e-3;   // GeV/c^2
   static const double electron_radius  = 2.817e-13;         // Classical electron radius (cm)
   static const double h_planck         = 6.626070040e-34;   // Planck constant (J*s)
@@ -69,10 +57,6 @@ public:
 
   static const int pid_electron = 11;
   static const int pid_photon   = 22;
-
-#endif
-
-
 
 
   // **** Flags & Options ****

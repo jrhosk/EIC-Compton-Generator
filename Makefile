@@ -1,20 +1,25 @@
-# Makefile to compile compton generator                                                                                                                    
-#       Joshua hoskins                                                                                                                                    
-#         October 2016                                                                                                                                       
-#                                                                                                                                                         
+#
+#  Makefile to compile generator code
+#    
+#
+#
 
-ROOTLIBS   = $(shell root-config --libs ) -lSpectrum
-ROOTGLIBS  = $(shell root-config --glibs)
-INCLUDES   = -I$(shell root-config --incdir) -Iinclude/ 
-CC         = g++ ${INCLUDES}
-SRC        = src
-CFLAGS     = -O -Wall ${INCLUDES}
+CXX=g++
+LD=g++
+CXXFLAGS=-g -O2 -O -Wall
+INCLUDE= include
+SRC= src
+ROOTLIBS=-L/u/apps/root/5.34.21/root/lib -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -pthread -lm -ldl -rdynamic -L/u/apps/root/5.34.21/root/lib -lGui
+ROOTINC=/u/apps/root/5.34.21/root/include
 
 all: generator
 
 %.o: %.cc
-	${CC} ${CFLAGS} ${EXTRAFLAGS} -c -o $@ $< 
-generator : generator.o ${SRC}/Generator.o
-	${CC} ${INCLUDES} -o $@  ${CFLAGS} $^ ${ROOTLIBS} ${ROOTGLIBS}
+	${CXX} ${CXXFLAGS} -I${INCLUDE} -I${ROOTINC} -c -o $@ $< 
+
+generator: generator.o ${SRC}/Generator.o
+	$(CXX) -I${INCLUDE} -I${ROOTINC} -o $@ ${CXXFLAGS} $^ ${ROOTLIBS}
+
+.PHONY: clean
 clean:
-	rm -f *.o ~* 
+	rm -f generator *.o

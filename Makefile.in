@@ -1,0 +1,25 @@
+#
+#  Makefile to compile generator code
+#    
+#
+#
+
+CXX=@CXX@
+LD=@CXX@
+CXXFLAGS=@CXXFLAGS@
+INCLUDE=@INCLUDE@
+SRC=@SRC@
+ROOTLIBS=@ROOTLIBS@
+ROOTINC=@ROOTINC@
+
+all: generator
+
+%.o: %.cc
+	${CXX} ${CXXFLAGS} -I${INCLUDE} -I${ROOTINC} -c -o $@ $< 
+
+generator: generator.o ${SRC}/Generator.o
+	$(CXX) -I${INCLUDE} -I${ROOTINC} -o $@ ${CXXFLAGS} $^ ${ROOTLIBS}
+
+.PHONY: clean
+clean:
+	rm -f generator *.o

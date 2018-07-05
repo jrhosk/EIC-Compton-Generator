@@ -7,18 +7,16 @@
 CXX=@CXX@
 LD=@CXX@
 CXXFLAGS=@CXXFLAGS@
-INCLUDE=@INCLUDE@
-SRC=@SRC@
-ROOTLIBS=@ROOTLIBS@
-ROOTINC=@ROOTINC@
+AC_CXXFLAGS=@AC_CXXFLAGS@
+AC_LDFLAGS=@AC_LDFLAGS@
 
 all: generator
 
 %.o: %.cc
-	${CXX} ${CXXFLAGS} -I${INCLUDE} -I${ROOTINC} -c -o $@ $< 
+	${CXX} ${CXXFLAGS} -Iinclude -I${AC_CXXFLAGS} -c -o $@ $< 
 
-generator: generator.o ${SRC}/Generator.o
-	$(CXX) -I${INCLUDE} -I${ROOTINC} -o $@ ${CXXFLAGS} $^ ${ROOTLIBS}
+generator: generator.o src/Generator.o
+	$(CXX) -Iinclude -I${AC_CXXFFLAGS} -o $@ ${CXXFLAGS} $^ ${AC_LDFLAGS}
 
 .PHONY: clean
 clean:

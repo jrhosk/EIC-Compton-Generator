@@ -18,7 +18,14 @@ The generator sotware now uses autoconf to build and compile the code.
 
 >>>> ./configure CXX='g++ -std=c++11'
      
-     Compilers flags can be change in a similar fashion using CXXFLAGS=""
+     Compilers flags can be change in a similar fashion using CXXFLAGS="".
+
+2a) Compiling with options (ROOT)
+    
+    Currently the only option here is to compile including ROOT support, which is required until the next release. 
+    Compilation including root is achieved using the --with-root flag.
+
+>>>> ./configure --with-root
 
 3) If configure finished with no errors. The code can be compiled using
 
@@ -28,4 +35,4 @@ The generator sotware now uses autoconf to build and compile the code.
 
 >>>> ./generator --help
 
-     Plesae direct any problems to myself in the form of a bug report or via email at jhoskins#jlab.org.
+     Plesae direct any problems to myself in the form of a bug report or via email at jhoskins@jlab.org.

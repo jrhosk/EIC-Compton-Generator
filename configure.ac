@@ -14,7 +14,7 @@ AC_ARG_WITH([root],
 # if optional parameter used, extend path flags for compliler and linker
 if test $with_root = 1 ; then
     # extend the compiler and linker flags according to the path set
-    AC_CXXFLAGS="$AC_CXXFLAGS -I`root-config --incdir`"
+    AC_CXXFLAGS="$AC_CXXFLAGS `root-config --incdir`"
     AC_LDFLAGS="$AC_LDFLAGS `root-config --libs --glibs`"
 fi
 

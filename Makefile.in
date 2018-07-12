@@ -16,7 +16,7 @@ all: generator
 	${CXX} ${CXXFLAGS} -Iinclude -I${AC_CXXFLAGS} -c -o $@ $< 
 
 generator: generator.o src/Generator.o
-	$(CXX) -Iinclude -I${AC_CXXFFLAGS} -o $@ ${CXXFLAGS} $^ ${AC_LDFLAGS}
+	$(CXX) -Iinclude -I${AC_CXXFLAGS} -o $@ ${CXXFLAGS} $^ ${AC_LDFLAGS}
 
 .PHONY: clean
 clean:

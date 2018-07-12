@@ -199,9 +199,6 @@ double Generator::CalculateAsymmetry(double *x = 0, double *par = 0)
 double Generator::RhoToAsymmetry(double b_energy = 0, double l_energy = 0, double rho = 0)
 {
 
-  // double b_energy   = par[0];
-  // double l_energy   = par[1];
-
   alpha = 1/(1 + (4*l_energy*b_energy)/(electron_mass_c2*electron_mass_c2));  
 
   double minus = rho*(1-alpha);
@@ -262,8 +259,6 @@ void Generator::WriteEvent(int index, int pid, double px, double py, double pz, 
          << " 0. 1 "
          << pid << " "
 	 << " 0 0 "
-	 // << kinematics.rho << " "
-	 // << kinematics.asymmetry << " "
          << px << " "
          << py << " "
          << pz << " "
@@ -495,9 +490,10 @@ void Generator::PrintHelp()
   Sys::SysMsg << __FUNCTION__ << " >>> --polarization <double>     [Optional] Set polarization of generated events. Defaults to 97%." << Sys::endl;
   Sys::SysMsg << __FUNCTION__ << " >>> --graphics                  [Optional] Flag that turns on graphical output." << Sys::endl;
   Sys::SysMsg << __FUNCTION__ << " >>> --energy <double>           [Optional] Set beam energy. Defaults to 5 GeV." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --sigmax, -sigmay <double>  [Optional] Set core beam width in cm." << Sys::endl;
   Sys::SysMsg << __FUNCTION__ << " >>> --halo-scale-x, --halo-scale-y <double> [Optional] Set multiplier that defines halo width compared to beam width. Defaults to x10." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --cutoffx, --cutoffy <double> [Optional] Set lower bound for events pulled from halo distribution. Defaults to 0." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --upperlimit <double>         [Optional] Set beam energy. Defaults to 5 GeV.Set upper limit for events pulled from halo distribution. Defaults to 7.3" << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --cutoffx, --cutoffy <double> [Optional] Set lower bound for events pulled from halo distribution(cm). Defaults to 0." << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --upperlimit <double>         [Optional] Set beam energy. Defaults to 5 GeV.Set upper limit for events pulled from halo distribution (cm). Defaults to 7.3 cm" << Sys::endl;
 
 }
 
@@ -514,7 +510,6 @@ double Generator::HaloFunctionX(double *x, double *par){
   double bot_h = TMath::Power(multiplier*sig, 2);
  
   diff_cross_section = A*TMath::Exp(-(top)/(2*bot_h) );
-  // std::cout << "Sigma:\t" << sig << "\tMultiplier:\t" << multiplier << "\t" << diff_cross_section << std::endl;
 
   return(diff_cross_section);
 }
@@ -532,7 +527,6 @@ double Generator::HaloFunctionY(double *x, double *par){
   double bot_h = TMath::Power(multiplier*sig, 2);
  
   diff_cross_section = A*TMath::Exp(-(top)/(2*bot_h) );
-  // std::cout << "Sigma:\t" << sig << "\tMultiplier:\t" << multiplier << "\t" << diff_cross_section << std::endl;
 
   return(diff_cross_section);
 }

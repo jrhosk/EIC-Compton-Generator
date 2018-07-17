@@ -477,6 +477,24 @@ void Generator::GetOptions(char **options)
 	      << "\n\tsigma y: " << sigma_y 
 	      << Sys::endl;
   }
+  if(fHaloGenerator){
+    if(beam_energy == 3){
+      sigma_x = 136e-4;
+      sigma_y = 56e-4;
+    }
+    if(beam_energy == 5){
+      sigma_x = 356.6e-4;
+      sigma_y = 115e-4;
+    }
+    if(beam_energy == 10){
+      sigma_x = 709e-4;
+      sigma_y = 229e-4;
+    }
+    Sys::SysMsg << __FUNCTION__ << "<<<< Beam energy set to: " << beam_energy 
+	      << "\n\tsigma x: " << sigma_x 
+	      << "\n\tsigma y: " << sigma_y 
+	      << Sys::endl;
+  }
 }
 
 void Generator::PrintHelp()
@@ -493,7 +511,7 @@ void Generator::PrintHelp()
   Sys::SysMsg << __FUNCTION__ << " >>> --sigmax, -sigmay <double>  [Optional] Set core beam width in cm." << Sys::endl;
   Sys::SysMsg << __FUNCTION__ << " >>> --halo-scale-x, --halo-scale-y <double> [Optional] Set multiplier that defines halo width compared to beam width. Defaults to x10." << Sys::endl;
   Sys::SysMsg << __FUNCTION__ << " >>> --cutoffx, --cutoffy <double> [Optional] Set lower bound for events pulled from halo distribution(cm). Defaults to 0." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --upperlimit <double>         [Optional] Set beam energy. Defaults to 5 GeV.Set upper limit for events pulled from halo distribution (cm). Defaults to 7.3 cm" << Sys::endl;
+  Sys::SysMsg << __FUNCTION__ << " >>> --upper_limit <double>         [Optional] Set beam energy. Defaults to 5 GeV.Set upper limit for events pulled from halo distribution (cm). Defaults to 7.3 cm" << Sys::endl;
 
 }
 

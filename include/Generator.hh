@@ -55,8 +55,8 @@ public:
   static const double h_planck         = 6.626070040e-34;   // Planck constant (J*s)
   static const double c_light          = 2.99792458e8;      // Speed of light (m/s)
 
-  static const int pid_electron = 11;
-  static const int pid_photon   = 22;
+  static const int pid_electron = 11;                       // Particle ID used by GEMC for electron
+  static const int pid_photon   = 22;                       // Particle ID used by GEMC for photon
 
 
   // **** Flags & Options ****

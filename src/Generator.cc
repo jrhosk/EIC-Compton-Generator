@@ -13,7 +13,7 @@
 
 Generator::Generator(char *options)
 {
-  fFileName = (char *)"lund.dat";
+  fFileName = (char *)"generator_lund.dat";
   fPolarization = 0.97;
   sigma_x = 226.6e-4;
   sigma_y = 99e-4;
@@ -126,12 +126,10 @@ double Generator::GetPhotonPz(){return kinematics.kz;}
 
 void Generator::CalculateKinematics()
 {
-  // double rho  = 0;
   double electron_prime = 0;
 
   kinematics.rho = cs->GetRandom();
 
-  // kinematics.rho = rho;
   kinematics.photon_phi = gRandom->Uniform(0, 2*TMath::Pi()); // Sample from a uniform distribution of phi
 
   kinematics.kmax = 4*alpha*laser_energy*std::pow(beam_energy/electron_mass_c2, 2); // The maximum scattered photon energy or minimum electron energy
@@ -141,12 +139,10 @@ void Generator::CalculateKinematics()
 
   electron_prime = beam_energy + laser_energy - kinematics.photon_momentum;
 
-  // kinematics.electron_momentum = std::sqrt(std::pow(beam_energy, 2) - std::pow(electron_mass_c2, 2)); 
   kinematics.electron_momentum = std::sqrt(std::pow(electron_prime, 2) - std::pow(electron_mass_c2, 2)); 
 
   kinematics.photon_theta = std::sqrt(4*laser_energy*alpha/kinematics.photon_momentum-std::pow(electron_mass_c2/beam_energy, 2));
-  // kinematics.photon_theta = std::sqrt( 4.*kinematics.photon_momentum/kinematics.kmax - 1./(alpha*std::pow(beam_energy/electron_mass_c2, 2)));
-  kinematics.electron_theta = std::asin(kinematics.photon_momentum*std::sin(kinematics.photon_theta)/kinematics.electron_momentum); // check this
+  kinematics.electron_theta = std::asin(kinematics.photon_momentum*std::sin(kinematics.photon_theta)/kinematics.electron_momentum); 
 
   kinematics.px = kinematics.electron_momentum*std::sin(kinematics.electron_theta)*std::sin(kinematics.electron_phi);
   kinematics.py = kinematics.electron_momentum*std::sin(kinematics.electron_theta)*std::cos(kinematics.electron_phi);
@@ -218,7 +214,7 @@ void Generator::OpenOutputFile()
   output.open(fFileName, std::fstream::out);
 
   if(!(output.is_open())){
-    Sys::SysError << __FUNCTION__ << "Failure to open output file. Exiting." << Sys::endl;
+    Sys::SysError << __FUNCTION__ << " Failure to open output file. Exiting." << Sys::endl;
     exit(1);
   }
 
@@ -230,7 +226,7 @@ void Generator::OpenOutputFile(char *filename)
   output.open(filename, std::fstream::out);
 
   if(!(output.is_open())){
-    Sys::SysError << __FUNCTION__ << "Failure to open output file. Exiting." << Sys::endl;
+    Sys::SysError << __FUNCTION__ << " Failure to open output file. Exiting." << Sys::endl;
     exit(1);
   }
 
@@ -245,7 +241,6 @@ void Generator::WriteHeader()
          << laser_energy << " "
          << kinematics.kmax << " "
 	 << fPolarization << " "
-         // << "0. 0. 0. 0. 0. \n";
 	 << kinematics.rho << " "
 	 << kinematics.asymmetry << " "
 	 << "0. 0. 0. \n";
@@ -263,8 +258,7 @@ void Generator::WriteEvent(int index, int pid, double px, double py, double pz, 
          << py << " "
          << pz << " "
          << momentum << " "
-    // << alpha << "-29.29464 0.0 -2287.855\n";                                                                                                                                 
-	 << alpha << " "
+	 << alpha << " "         // alpha << "-29.29464 0.0 -2287.855\n";                                                                                                                       
          << kinematics.vx << " "
          << kinematics.vy << " "
          << kinematics.vz << "\n";
@@ -300,30 +294,30 @@ void Generator::BuildGeneratedAsymmetryPlot()
 void Generator::PrintEvent()
 {
 
-  Sys::SysMsg << __FUNCTION__ << " \n=====================================\n" << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " \n=====================================\n" << Sys::endl;
 
-  Sys::SysMsg << __FUNCTION__ << " >>> \tElectron \n" << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Electron theta: " << kinematics.electron_theta << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Electron phi: " << kinematics.electron_phi << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Electron Momentum: " << kinematics.electron_momentum << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> ---------------------------     " << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Electron px: " << kinematics.px << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Electron py: " << kinematics.py << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Electron pz: " << kinematics.pz << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> \tElectron \n" << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Electron theta: " << kinematics.electron_theta << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Electron phi: " << kinematics.electron_phi << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Electron Momentum: " << kinematics.electron_momentum << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> ---------------------------     " << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Electron px: " << kinematics.px << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Electron py: " << kinematics.py << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Electron pz: " << kinematics.pz << Sys::endl;
 
-  Sys::SysMsg << __FUNCTION__ << " \n\n\n" << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " \n\n\n" << Sys::endl;
 
-  Sys::SysMsg << __FUNCTION__ << " >>> \tPhoton \n" << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Photon theta: " << kinematics.photon_theta << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Photon phi: " << kinematics.photon_phi << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Photon Momentum: " << kinematics.photon_momentum << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << "     ---------------------------     " << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Photon px: " << kinematics.kx << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Photon py: " << kinematics.ky << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Photon pz: " << kinematics.kz << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> Photon max: " << kinematics.kmax << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> \tPhoton \n" << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Photon theta: " << kinematics.photon_theta << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Photon phi: " << kinematics.photon_phi << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Photon Momentum: " << kinematics.photon_momentum << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << "     ---------------------------     " << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Photon px: " << kinematics.kx << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Photon py: " << kinematics.ky << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Photon pz: " << kinematics.kz << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> Photon max: " << kinematics.kmax << Sys::endl;
 
-  Sys::SysMsg << __FUNCTION__ << " >>> =====================================\n" << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> =====================================\n" << Sys::endl;
 
 }
 
@@ -500,18 +494,18 @@ void Generator::GetOptions(char **options)
 void Generator::PrintHelp()
 {
 
-  Sys::SysMsg << __FUNCTION__ << " >>> --halo                  [Required] Flag that that turns on halo generation." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --compton               [Required] Flag that that turns on compton generation." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --filename <name>       [Required] Set output filename." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --events <int>          [Required] Set number of events." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --halo                  [Required] Flag that that turns on halo generation." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --compton               [Required] Flag that that turns on compton generation." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --filename <name>       [Required] Set output filename." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --events <int>          [Required] Set number of events." << Sys::endl;
 
-  Sys::SysMsg << __FUNCTION__ << " >>> --polarization <double>     [Optional] Set polarization of generated events. Defaults to 97%." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --graphics                  [Optional] Flag that turns on graphical output." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --energy <double>           [Optional] Set beam energy. Defaults to 5 GeV." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --sigmax, -sigmay <double>  [Optional] Set core beam width in cm." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --halo-scale-x, --halo-scale-y <double> [Optional] Set multiplier that defines halo width compared to beam width. Defaults to x10." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --cutoffx, --cutoffy <double> [Optional] Set lower bound for events pulled from halo distribution(cm). Defaults to 0." << Sys::endl;
-  Sys::SysMsg << __FUNCTION__ << " >>> --upper_limit <double>         [Optional] Set beam energy. Defaults to 5 GeV.Set upper limit for events pulled from halo distribution (cm). Defaults to 7.3 cm" << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --polarization <double>     [Optional] Set polarization of generated events. Defaults to 97%." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --graphics                  [Optional] Flag that turns on graphical output." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --energy <double>           [Optional] Set beam energy. Defaults to 5 GeV." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --sigmax, -sigmay <double>  [Optional] Set core beam width in cm." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --halo-scale-x, --halo-scale-y <double> [Optional] Set multiplier that defines halo width compared to beam width. Defaults to x10." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --cutoffx, --cutoffy <double> [Optional] Set lower bound for events pulled from halo distribution(cm). Defaults to 0." << Sys::endl;
+  Sys::SysCout << __FUNCTION__ << " >>> --upper_limit <double>        [Optional] Set beam energy. Defaults to 5 GeV.Set upper limit for events pulled from halo distribution (cm). Defaults to 7.3 cm" << Sys::endl;
 
 }
 

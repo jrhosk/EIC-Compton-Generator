@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 
   Generator *compton = new Generator();
 
-  compton->SetBeamEnergy(5);                                   // Default polarization
+  compton->SetBeamEnergy(5);                                   // Default beam energy
   compton->SetLaserEnergy(2.33e-9);                            // Laser energy (eV)
   compton->SetPolarization(compton->fPolarization);            // Defined as P=-P_o (left), P=P_o (right)
 
@@ -70,6 +70,7 @@ int main(int argc, char **argv)
   TF1 *haloy;
 
   if(compton->fHaloGenerator){
+
     halox = new TF1("halox", Generator::HaloFunctionX, compton->cutoffx, compton->upper_limit, 2); // positions in cm
     halox->SetParameters(compton->sigma_x, compton->halo_scale_x); // positions in cm
     halox->SetNpx(100000);
@@ -85,7 +86,7 @@ int main(int argc, char **argv)
 
   for(int i = 0; i < (int)(compton->GetNumberEvents()); i++)
     {
-      sign *= -1;
+      sign *= -1;    // Alternate sign of randomly sampled beam position. This is more efficient than sampling from a wider distribution.
       
       if(compton->fComptonGenerator) compton->SetEventVertex(-29.29464 + beamx->GetRandom(-7.0, 7.0), 
        							     beamy->GetRandom(-7.0, 7.0), 
@@ -96,7 +97,7 @@ int main(int argc, char **argv)
 							  beamy->GetRandom(-7.0, 7.0) + sign*haloy->GetRandom(-7.0, 7.0), 
 							  -2187.855);    // add in the gaussian nature of the electron beam
       
-      if(i % 10000 == 0) std::cout << i << std::endl;
+      if(i % 10000 == 0) Sys::SysCout << i << Sys::endl;
       if(compton->fComptonGenerator){
 	compton->CalculateKinematics();
 	compton->ProcessComptonEvent();
